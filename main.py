@@ -2,18 +2,18 @@ import nengo
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-from urllib.request import urlretrieve
-import cv2
 import os
+
+# from urllib.request import urlretrieve
 from nengo_dl import configure_settings, Layer, Simulator
-from import_images import load_images
+from segmentation import segmentoutletters
 
-(train_images, train_labels), (test_images, test_labels) = (
-    tf.keras.datasets.mnist.load_data()
-)
+# (train_images, train_labels), (test_images, test_labels) = (
+#     tf.keras.datasets.mnist.load_data()
+# )
 
-train_images = train_images.reshape((train_images.shape[0], -1))
-test_images = test_images.reshape((test_images.shape[0], -1))
+# train_images = train_images.reshape((train_images.shape[0], -1))
+# test_images = test_images.reshape((test_images.shape[0], -1))
 
 
 with nengo.Network(seed=0) as model:
@@ -47,15 +47,15 @@ with nengo.Network(seed=0) as model:
     out_p_filt = nengo.Probe(out, synapse=0.1, label="out_p_filt")
 
 # minibatch_size = 200
-minibatch_size = 11
+minibatch_size = 10
 sim = Simulator(model, minibatch_size=minibatch_size)
 
-train_images = train_images[:, None, :]
-train_labels = train_labels[:, None, None]
+# train_images = train_images[:, None, :]
+# train_labels = train_labels[:, None, None]
 
-n_steps = 120
-test_images = np.tile(test_images[:, None, :], (1, n_steps, 1))
-test_labels = np.tile(test_labels[:, None, None], (1, n_steps, 1))
+# n_steps = 120
+# test_images = np.tile(test_images[:, None, :], (1, n_steps, 1))
+# test_labels = np.tile(test_labels[:, None, None], (1, n_steps, 1))
 
 
 def classification_accuracy(y_true, y_pred):
@@ -67,20 +67,33 @@ sim.compile(loss={out_p_filt: classification_accuracy})
 # load parameters
 sim.load_params("./mnist_params")
 # data = sim.predict(test_images[:minibatch_size])
-our_images = load_images()
-data = sim.predict(our_images)
+# our_images = load_images()
 
-for i in range(11):
-    plt.figure(figsize=(8, 4))
-    plt.subplot(1, 2, 1)
-    plt.imshow(our_images[i, 0].reshape((28, 28)), cmap="gray")
+plot = False
+for name in os.listdir("../Dane"):
+    our_images, im = segmentoutletters(name)
+    data = sim.predict(our_images)
+
+    label_text = ""
+    for i in range(10):
+        if plot:
+            plt.figure(figsize=(8, 4))
+            plt.subplot(1, 2, 1)
+            plt.imshow(our_images[i, 0].reshape((28, 28)), cmap="gray")
+            plt.axis("off")
+
+            plt.subplot(1, 2, 2)
+            plt.plot(tf.nn.softmax(data[out_p_filt][i]))
+            plt.legend([str(i) for i in range(10)], loc="upper left")
+            plt.xlabel("timesteps")
+            plt.ylabel("probability")
+            plt.tight_layout()
+        label_text += str(np.argmax(tf.nn.softmax(data[out_p_filt][i])[-1, :]))
+
+    plt.figure()
+    plt.imshow(im)
+    plt.title(label_text, fontsize=40)
     plt.axis("off")
 
-    plt.subplot(1, 2, 2)
-    plt.plot(tf.nn.softmax(data[out_p_filt][i]))
-    plt.legend([str(i) for i in range(10)], loc="upper left")
-    plt.xlabel("timesteps")
-    plt.ylabel("probability")
-    plt.tight_layout()
 plt.show()
 sim.close()
