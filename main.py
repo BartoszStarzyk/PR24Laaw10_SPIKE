@@ -6,7 +6,7 @@ import os
 
 # from urllib.request import urlretrieve
 from nengo_dl import configure_settings, Layer, Simulator
-from segmentation import segmentoutletters
+from segmention import segmentoutletters
 
 # (train_images, train_labels), (test_images, test_labels) = (
 #     tf.keras.datasets.mnist.load_data()
@@ -69,7 +69,7 @@ sim.load_params("./mnist_params")
 # data = sim.predict(test_images[:minibatch_size])
 # our_images = load_images()
 
-plot = False
+plot = True
 for name in os.listdir("../Dane"):
     our_images, im = segmentoutletters(name)
     data = sim.predict(our_images)
