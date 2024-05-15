@@ -43,10 +43,16 @@ def mnistify_image(I):
     M00 = M["m00"]
 
     x, y = I_resized.shape
-    x_start = int((28 - x) // 2 + 10 - M["m01"] / M00)
+    # x_start = int((28 - x) // 2 + 10 - M["m01"] / M00)
+    # x_end = x_start + x
+
+    # y_start = int((28 - y) // 2 + 10 - M["m10"] / M00)
+    # y_end = y_start + y
+
+    x_start = int(14 - M["m01"] / M00)
     x_end = x_start + x
 
-    y_start = int((28 - y) // 2 + 10 - M["m10"] / M00)
+    y_start = int(14 - M["m10"] / M00)
     y_end = y_start + y
 
     bgr = np.zeros((28, 28))
