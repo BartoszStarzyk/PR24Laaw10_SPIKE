@@ -3,6 +3,7 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from string import ascii_uppercase
 
 # from urllib.request import urlretrieve
 from nengo_dl import configure_settings, Layer, Simulator
@@ -41,7 +42,7 @@ with nengo.Network(seed=0) as model:
     )
     x = Layer(neuron_type)(x)
 
-    out = Layer(tf.keras.layers.Dense(units=10))(x)
+    out = Layer(tf.keras.layers.Dense(units=36))(x)
 
     out_p = nengo.Probe(out, label="out_p")
     out_p_filt = nengo.Probe(out, synapse=0.1, label="out_p_filt")
@@ -69,14 +70,30 @@ sim.load_params("./mnist_params")
 # data = sim.predict(test_images[:minibatch_size])
 # our_images = load_images()
 
-plot = True
+plot = False
+labels = {
+    "(BARCODE)0003": "AT_02001/2",
+    "(BARCODE)0007": "AT_02001/6",
+    "(BARCODE)0015": "AT_02002/4",
+    "BG_0005": "BG01001/5",
+    "BG_0012": "BG01002/2",
+    "BG_0015": "BG01002/4",
+}
+accuracies = []
+a = list(map(str, range(36)))
+b = list(map(str, range(10))) + list(ascii_uppercase)
+convert_classes = dict(zip(list(a), b))
+
+aaa = 0
 for name in os.listdir("../Dane"):
+
     our_images, im = segmentoutletters(name)
     data = sim.predict(our_images)
 
+    labal_label = name[:-4]
     label_text = ""
     for i in range(10):
-        if plot:
+        if aaa == 0:
             plt.figure(figsize=(8, 4))
             plt.subplot(1, 2, 1)
             plt.imshow(our_images[i, 0].reshape((28, 28)), cmap="gray")
@@ -84,16 +101,25 @@ for name in os.listdir("../Dane"):
 
             plt.subplot(1, 2, 2)
             plt.plot(tf.nn.softmax(data[out_p_filt][i]))
-            plt.legend([str(i) for i in range(10)], loc="upper left")
+            plt.legend(
+                [str(i) for i in range(10)] + list(ascii_uppercase), loc="upper left"
+            )
             plt.xlabel("timesteps")
             plt.ylabel("probability")
             plt.tight_layout()
-        label_text += str(np.argmax(tf.nn.softmax(data[out_p_filt][i])[-1, :]))
+        label_text += convert_classes[
+            str(np.argmax(tf.nn.softmax(data[out_p_filt][i])[-1, :]))
+        ]
+        # label_text += str(np.argmax(tf.nn.softmax(data[out_p_filt][i])[-1, :])) + " "
 
     plt.figure()
     plt.imshow(im)
     plt.title(label_text, fontsize=40)
     plt.axis("off")
-
+    aaa += 1
 plt.show()
 sim.close()
+
+# pytjaniki jeżeli za mała pewność
+# odległość najlepszego rozwiązania od średniej lub kolejnego
+# zbadać wsparcie dla opencla przy nengo
