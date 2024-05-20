@@ -33,8 +33,11 @@ def load_images(img_label="BG_0014.tif"):
     return test_images
 
 
-def mnistify_image(I):
-    I = 255 - cv2.cvtColor(I, cv2.COLOR_BGR2GRAY).astype(np.float32)
+def mnistify_image(I, printed=False):
+    BGR_DELETION_THRESHOLD = 60
+    I = 255 - cv2.cvtColor(I, cv2.COLOR_BGR2GRAY).astype(np.uint8)
+    I = cv2.medianBlur(I, 7).astype(np.float32)
+    I[I < BGR_DELETION_THRESHOLD] = 0
     scale_factor = 20 / max(I.shape)
     I_resized = cv2.resize(I, (0, 0), fx=scale_factor, fy=scale_factor)
     _, I_bin = cv2.threshold(I_resized, 50, 255, cv2.THRESH_BINARY)
@@ -43,12 +46,6 @@ def mnistify_image(I):
     M00 = M["m00"]
 
     x, y = I_resized.shape
-    # x_start = int((28 - x) // 2 + 10 - M["m01"] / M00)
-    # x_end = x_start + x
-
-    # y_start = int((28 - y) // 2 + 10 - M["m10"] / M00)
-    # y_end = y_start + y
-
     x_start = int(14 - M["m01"] / M00)
     x_end = x_start + x
 
@@ -56,8 +53,18 @@ def mnistify_image(I):
     y_end = y_start + y
 
     bgr = np.zeros((28, 28))
+    if printed:
+        bgr += 255
+
+    ######
+    I_resized = I_resized / np.max(I_resized) * 255
+    ######
     bgr[x_start:x_end, y_start:y_end] = I_resized
     return bgr
+
+
+def generate_labels():
+    pass
 
 
 if __name__ == "__main__":

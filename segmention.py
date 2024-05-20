@@ -46,19 +46,22 @@ def segmentoutletters(name, save=False):
             wind_save = Image.fromarray(wind)
             wind_save.save(f"../segmentacja_output_przyciete/{name[:-4]}_{i}.jpg")
         else:
+            #################################
             wind = mnistify_image(wind)
+            #################################
             images[i, :] = wind.flatten()
         i += 1
 
     n_steps = 30
     images = np.tile(images[:, None, :], (1, n_steps, 1))
-    return images, im_orig
+    return images.astype(np.uint8), im_orig
 
 
-names = os.listdir("../Dane")
-for name in names:
-    t1 = datetime.now()
-    segmentoutletters(name, save=True)
-    t2 = datetime.now()
-    print((t2 - t1))
-plt.show()
+if __name__ == "__main__":
+    names = os.listdir("../Dane")
+    for name in names:
+        t1 = datetime.now()
+        segmentoutletters(name, save=True)
+        t2 = datetime.now()
+        print((t2 - t1))
+    plt.show()

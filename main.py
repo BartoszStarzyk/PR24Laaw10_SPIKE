@@ -1,99 +1,54 @@
-import nengo
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import os
 from string import ascii_uppercase
-
-# from urllib.request import urlretrieve
-from nengo_dl import configure_settings, Layer, Simulator
+import network
+from nengo_dl import Simulator
 from segmention import segmentoutletters
 
-# (train_images, train_labels), (test_images, test_labels) = (
-#     tf.keras.datasets.mnist.load_data()
-# )
-
-# train_images = train_images.reshape((train_images.shape[0], -1))
-# test_images = test_images.reshape((test_images.shape[0], -1))
-
-
-with nengo.Network(seed=0) as model:
-    model.config[nengo.Ensemble].max_rates = nengo.dists.Choice([100])
-    model.config[nengo.Ensemble].intercepts = nengo.dists.Choice([0])
-    model.config[nengo.Connection].synapse = None
-    neuron_type = nengo.LIF(amplitude=0.01)
-
-    configure_settings(stateful=False)
-
-    inp = nengo.Node(np.zeros(28 * 28))
-
-    x = Layer(tf.keras.layers.Conv2D(filters=32, kernel_size=3))(
-        inp, shape_in=(28, 28, 1)
-    )
-    x = Layer(neuron_type)(x)
-
-    x = Layer(tf.keras.layers.Conv2D(filters=64, strides=2, kernel_size=3))(
-        x, shape_in=(26, 26, 32)
-    )
-    x = Layer(neuron_type)(x)
-
-    x = Layer(tf.keras.layers.Conv2D(filters=128, strides=2, kernel_size=3))(
-        x, shape_in=(12, 12, 64)
-    )
-    x = Layer(neuron_type)(x)
-
-    out = Layer(tf.keras.layers.Dense(units=36))(x)
-
-    out_p = nengo.Probe(out, label="out_p")
-    out_p_filt = nengo.Probe(out, synapse=0.1, label="out_p_filt")
-
-# minibatch_size = 200
+model, out_p, out_p_filt = network.net()
 minibatch_size = 10
 sim = Simulator(model, minibatch_size=minibatch_size)
-
-# train_images = train_images[:, None, :]
-# train_labels = train_labels[:, None, None]
-
-# n_steps = 120
-# test_images = np.tile(test_images[:, None, :], (1, n_steps, 1))
-# test_labels = np.tile(test_labels[:, None, None], (1, n_steps, 1))
 
 
 def classification_accuracy(y_true, y_pred):
     return tf.metrics.sparse_categorical_accuracy(y_true[:, -1], y_pred[:, -1])
 
 
+def test_accuracy(label, prediction):
+    labels = {
+        "(BARCODE)0003": "AT_02001/2",
+        "(BARCODE)0007": "AT_02001/6",
+        "(BARCODE)0015": "AT_02002/4",
+        "BG_0005": "BG_01001/5",
+        "BG_0012": "BG_01002/2",
+        "BG_0014": "BG_01002/4",
+    }
+    return sum([pred == lab for pred, lab in zip(prediction, labels[label])]) / 10
+
+
+sim.load_params("./previous_weights/mnist_params")
 sim.compile(loss={out_p_filt: classification_accuracy})
 
-# load parameters
-sim.load_params("./mnist_params")
-# data = sim.predict(test_images[:minibatch_size])
-# our_images = load_images()
 
-plot = False
-labels = {
-    "(BARCODE)0003": "AT_02001/2",
-    "(BARCODE)0007": "AT_02001/6",
-    "(BARCODE)0015": "AT_02002/4",
-    "BG_0005": "BG01001/5",
-    "BG_0012": "BG01002/2",
-    "BG_0015": "BG01002/4",
-}
-accuracies = []
+accuracies = 0
 a = list(map(str, range(36)))
 b = list(map(str, range(10))) + list(ascii_uppercase)
-convert_classes = dict(zip(list(a), b))
+convert_classes = dict(zip(a, b))
 
-aaa = 0
+plot = True
+plot_indices = [0]
+plot_index = 0
+
 for name in os.listdir("../Dane"):
-
     our_images, im = segmentoutletters(name)
     data = sim.predict(our_images)
-
+    # data = sim.predict(test_images[:minibatch_size])
     labal_label = name[:-4]
     label_text = ""
     for i in range(10):
-        if aaa == 0:
+        if plot and plot_index in plot_indices:
             plt.figure(figsize=(8, 4))
             plt.subplot(1, 2, 1)
             plt.imshow(our_images[i, 0].reshape((28, 28)), cmap="gray")
@@ -106,17 +61,16 @@ for name in os.listdir("../Dane"):
             )
             plt.xlabel("timesteps")
             plt.ylabel("probability")
-            plt.tight_layout()
-        label_text += convert_classes[
-            str(np.argmax(tf.nn.softmax(data[out_p_filt][i])[-1, :]))
-        ]
-        # label_text += str(np.argmax(tf.nn.softmax(data[out_p_filt][i])[-1, :])) + " "
-
+        label_text += convert_classes[str(np.argmax(data[out_p_filt][i][-1, :]))]
+    accuracy = test_accuracy(labal_label, label_text)
+    accuracies += accuracy
+    print(f"label {labal_label} accuracy: {accuracy * 100}%")
     plt.figure()
     plt.imshow(im)
     plt.title(label_text, fontsize=40)
     plt.axis("off")
-    aaa += 1
+    plot_index += 1
+print(f"total accuracy: {accuracies / 6 * 100}%")
 plt.show()
 sim.close()
 
