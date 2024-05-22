@@ -34,7 +34,7 @@ def load_images(img_label="BG_0014.tif"):
 
 
 def mnistify_image(I, printed=False):
-    BGR_DELETION_THRESHOLD = 60
+    BGR_DELETION_THRESHOLD = 45
     I = 255 - cv2.cvtColor(I, cv2.COLOR_BGR2GRAY).astype(np.uint8)
     I = cv2.medianBlur(I, 7).astype(np.float32)
     I[I < BGR_DELETION_THRESHOLD] = 0
