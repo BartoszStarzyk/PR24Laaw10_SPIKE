@@ -72,7 +72,7 @@ accuracies = 0
 
 plot_indices = [0]
 
-for idx, name in enumerate(os.listdir("Dane")):
+for idx, name in enumerate(os.listdir("Dane_przyciete")):
     our_images, im, s_chars = segmentoutletters(
         name, save=False, detect_special_chars=True
     )

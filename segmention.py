@@ -119,7 +119,7 @@ def segmentoutletters(name, save=False, detect_special_chars=False):
 
 
 if __name__ == "__main__":
-    names = os.listdir("Dane")
+    names = os.listdir("Dane_przyciete")
     temp_counter = 0
     for name in names:
         t1 = datetime.now()
