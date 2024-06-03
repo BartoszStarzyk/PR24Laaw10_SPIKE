@@ -19,7 +19,7 @@ QUESTIONMARK_ID = -3
 
 
 # def segmentoutletters(name, save=False, detect_special_chars=False):
-#     img = np.asarray(Image.open("../Dane_przyciete/" + name))
+#     img = np.asarray(Image.open("Dane_przyciete/" + name))
 #     img_orig = img.copy()
 #     img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 #     _, img = cv.threshold(~img, B_THRESH, 255, cv.THRESH_BINARY)
@@ -50,7 +50,7 @@ QUESTIONMARK_ID = -3
 #         window = img_orig[minr:maxr, minc:maxc, :]
 #         if save:
 #             wind_save = Image.fromarray(window)
-#             wind_save.save(f"../segmentacja_output_przyciete/{name[:-4]}_{i}.jpg")
+#             wind_save.save(f"segmentacja_output_przyciete/{name[:-4]}_{i}.jpg")
 #         else:
 #             #################################
 #             window = mnistify_image(window)
@@ -64,7 +64,7 @@ QUESTIONMARK_ID = -3
 
 
 def segmentoutletters(name, save=False, detect_special_chars=False):
-    img = np.asarray(Image.open("../Dane_przyciete/" + name))
+    img = np.asarray(Image.open("Dane_przyciete/" + name))
     img_orig = img.copy()
     img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     _, img = cv.threshold(~img, B_THRESH, 255, cv.THRESH_BINARY)
@@ -105,7 +105,7 @@ def segmentoutletters(name, save=False, detect_special_chars=False):
                     special_char[i] = UNDERSCORE_ID
         if save:
             wind_save = Image.fromarray(window)
-            wind_save.save(f"../segmentacja_output_przyciete/{name[:-4]}_{i}.jpg")
+            wind_save.save(f"segmentacja_output_przyciete/{name[:-4]}_{i}.jpg")
         else:
             window = mnistify_image(window)
             images[i, :] = window.flatten()
@@ -119,7 +119,7 @@ def segmentoutletters(name, save=False, detect_special_chars=False):
 
 
 if __name__ == "__main__":
-    names = os.listdir("../Dane")
+    names = os.listdir("Dane")
     temp_counter = 0
     for name in names:
         t1 = datetime.now()

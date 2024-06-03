@@ -1,0 +1,9 @@
+.venv
+__pycache__
+__init__.py
+previous_weights
+mnist_paramas.npz
+datasets
+Dane*
+segmentacja*
+Zrodla

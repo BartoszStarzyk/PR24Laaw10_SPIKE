@@ -31,7 +31,6 @@ def test_accuracy(label, prediction):
 
 
 def plot_predictions(data, our_images, i, name):
-    plt.title(name)
     plt.figure(figsize=(8, 4))
     plt.subplot(1, 2, 1)
     plt.imshow(our_images[i, 0].reshape((28, 28)), cmap="gray")
@@ -73,7 +72,7 @@ accuracies = 0
 
 plot_indices = [0]
 
-for idx, name in enumerate(os.listdir("../Dane")):
+for idx, name in enumerate(os.listdir("Dane")):
     our_images, im, s_chars = segmentoutletters(
         name, save=False, detect_special_chars=True
     )
@@ -104,3 +103,13 @@ sim.close()
 # pytjaniki jeżeli za mała pewność
 # odległość najlepszego rozwiązania od średniej lub kolejnego
 # zbadać wsparcie dla opencla przy nengo
+
+# opencl trudności
+# model neuronu
+
+# porównanie nengo_dl z kartą i bez
+# metoda rozpoznawania opis
+# Sprawozdanie
+
+
+# Decyzja o terminie
