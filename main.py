@@ -85,7 +85,7 @@ if __name__ == "__main__":
         label_label = name[:-4]
         label_text = ""
         for i in range(10):
-            plot_predictions(data, our_images, i, name)
+            plot_predictions(data, our_images, i)
             label_text += convert_classes[str(prediction[i])]
         accuracy = test_accuracy(label_label, label_text)
         accuracies += accuracy
