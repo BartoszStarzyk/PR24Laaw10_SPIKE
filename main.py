@@ -1,13 +1,8 @@
-# TODO: Podmienienie na OpenCLa, pomiary (też w labie)
-# TODO: Wymyślenie co jest źle z ewaluacją (Pewnie coś z labelami ew.)
-# TODO: Zapisywanie całej historii trenowania
-# TODO: sprawdzenie wszystkich zapisanych wag
-# TODO: Probe'y do wyresów?
-
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import sys
 from string import ascii_uppercase
 import network
 from nengo_dl import Simulator
@@ -30,7 +25,7 @@ def test_accuracy(label, prediction):
     return sum([pred == lab for pred, lab in zip(prediction, labels[label])]) / 10
 
 
-def plot_predictions(data, our_images, i, name):
+def plot_predictions(data, our_images, i):
     plt.figure(figsize=(8, 4))
     plt.subplot(1, 2, 1)
     plt.imshow(our_images[i, 0].reshape((28, 28)), cmap="gray")
@@ -53,63 +48,49 @@ def plot_results(image, labels, confidence):
     plt.axis("off")
 
 
-k = list(map(str, range(36))) + [
-    str(UNDERSCORE_ID),
-    str(SLASH_ID),
-    str(QUESTIONMARK_ID),
-]
-v = list(map(str, range(10))) + list(ascii_uppercase) + ["_", "/", "?"]
-convert_classes = dict(zip(k, v))
+if __name__ == "__main__":
+    k = list(map(str, range(36))) + [
+        str(UNDERSCORE_ID),
+        str(SLASH_ID),
+        str(QUESTIONMARK_ID),
+    ]
+    v = list(map(str, range(10))) + list(ascii_uppercase) + ["_", "/", "?"]
+    convert_classes = dict(zip(k, v))
 
+    model, out_p, out_p_filt = network.net()
+    sim = Simulator(model, minibatch_size=10)
+    sim.load_params("./wagi_epoki/params_epoch_11_dropout_123")
+    sim.compile(loss={out_p_filt: classification_accuracy})
 
-model, out_p, out_p_filt = network.net()
-sim = Simulator(model, minibatch_size=10)
-sim.load_params("./wagi_epoki/params_epoch_11_dropout_123")
-sim.compile(loss={out_p_filt: classification_accuracy})
+    accuracies = 0
 
+    if len(sys.argv) == 1:
+        files_to_analyse = os.listdir("Dane_przyciete")
+    else:
+        files_to_analyse = [sys.argv[1]]
 
-accuracies = 0
-
-plot_indices = [0]
-
-for idx, name in enumerate(os.listdir("Dane_przyciete")):
-    our_images, im, s_chars = segmentoutletters(
-        name, save=False, detect_special_chars=True
-    )
-    data = tf.nn.softmax(sim.predict(our_images)[out_p_filt])
-    predictions = np.argsort(data[:, -1, :], axis=1)
-    prediction = predictions[:, -1]
-    second_prediction = predictions[:, -2]
-    # print(name, prediction, second_prediction)
-    confidence = np.abs(
-        data[:, -1, :].numpy()[np.arange(10), prediction]
-        - data[:, -1, :].numpy()[np.arange(10), second_prediction]
-    )
-    prediction[s_chars != 0] = s_chars[s_chars != 0]
-    label_label = name[:-4]
-    label_text = ""
-    for i in range(10):
-        if idx in plot_indices:
+    for idx, name in enumerate(files_to_analyse):
+        our_images, im, s_chars = segmentoutletters(
+            name, save=False, detect_special_chars=True
+        )
+        data = tf.nn.softmax(sim.predict(our_images)[out_p_filt])
+        predictions = np.argsort(data[:, -1, :], axis=1)
+        prediction = predictions[:, -1]
+        second_prediction = predictions[:, -2]
+        confidence = np.abs(
+            data[:, -1, :].numpy()[np.arange(10), prediction]
+            - data[:, -1, :].numpy()[np.arange(10), second_prediction]
+        )
+        prediction[s_chars != 0] = s_chars[s_chars != 0]
+        label_label = name[:-4]
+        label_text = ""
+        for i in range(10):
             plot_predictions(data, our_images, i, name)
-        label_text += convert_classes[str(prediction[i])]
-    accuracy = test_accuracy(label_label, label_text)
-    accuracies += accuracy
-    print(f"label {label_label} accuracy: {accuracy * 100}%")
-    plot_results(im, label_text, confidence)
-print(f"total accuracy: {accuracies / 6 * 100}%")
-plt.show()
-sim.close()
-
-# pytjaniki jeżeli za mała pewność
-# odległość najlepszego rozwiązania od średniej lub kolejnego
-# zbadać wsparcie dla opencla przy nengo
-
-# opencl trudności
-# model neuronu
-
-# porównanie nengo_dl z kartą i bez
-# metoda rozpoznawania opis
-# Sprawozdanie
-
-
-# Decyzja o terminie
+            label_text += convert_classes[str(prediction[i])]
+        accuracy = test_accuracy(label_label, label_text)
+        accuracies += accuracy
+        print(f"label: {label_label} accuracy: {accuracy * 100}%")
+        plot_results(im, label_text, confidence)
+    print(f"total accuracy: {accuracies / len(files_to_analyse) * 100}%")
+    plt.show()
+    sim.close()

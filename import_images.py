@@ -2,7 +2,6 @@ import cv2
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.measure import label, regionprops
 
 
 def load_images(img_label="BG_0014.tif"):

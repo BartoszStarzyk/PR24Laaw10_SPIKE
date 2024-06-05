@@ -18,51 +18,6 @@ SLASH_ID = -2
 QUESTIONMARK_ID = -3
 
 
-# def segmentoutletters(name, save=False, detect_special_chars=False):
-#     img = np.asarray(Image.open("Dane_przyciete/" + name))
-#     img_orig = img.copy()
-#     img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-#     _, img = cv.threshold(~img, B_THRESH, 255, cv.THRESH_BINARY)
-#     img = cv.medianBlur(img, 5)
-
-#     labels = label(img)
-#     props = regionprops(labels)
-
-#     b_boxes = np.array([i.bbox for i in props])
-#     height, width = np.array(
-#         [((maxr - minr), (maxc - minc)) for minr, minc, maxr, maxc in b_boxes]
-#     ).T
-
-#     b_boxes_filt = b_boxes[
-#         np.logical_or(
-#             np.logical_and(height < S_THRESH_H, height > S_THRESH_L),
-#             np.logical_and(width < S_THRESH_H, width > S_THRESH_L),
-#         )
-#     ]
-#     i = 0
-
-#     b_boxes_filt = sorted(list(b_boxes_filt), key=lambda x: x[1])
-#     n_images = len(b_boxes_filt)
-#     flat_img_size = 28 * 28
-#     images = np.zeros((n_images, flat_img_size))
-
-#     for minr, minc, maxr, maxc in b_boxes_filt:
-#         window = img_orig[minr:maxr, minc:maxc, :]
-#         if save:
-#             wind_save = Image.fromarray(window)
-#             wind_save.save(f"segmentacja_output_przyciete/{name[:-4]}_{i}.jpg")
-#         else:
-#             #################################
-#             window = mnistify_image(window)
-#             #################################
-#             images[i, :] = window.flatten()
-#         i += 1
-
-#     time_steps = 30
-#     images = np.tile(images[:, None, :], (1, time_steps, 1))
-#     return images.astype(np.uint8), img_orig
-
-
 def segmentoutletters(name, save=False, detect_special_chars=False):
     img = np.asarray(Image.open("Dane_przyciete/" + name))
     img_orig = img.copy()
