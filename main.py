@@ -11,7 +11,7 @@ import os
 from string import ascii_uppercase
 import network
 from nengo_dl import Simulator
-from segmention import segmentoutletters, SLASH_ID, UNDERSCORE_ID, QUESTIONMARK_ID
+from segmentation import segmentoutletters, SLASH_ID, UNDERSCORE_ID, QUESTIONMARK_ID
 
 
 def classification_accuracy(y_true, y_pred):
